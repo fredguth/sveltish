@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "svelty"
+  site-url: "https://fredguth.github.io/svelty"
+  description: "A [Svelte Stores](https://svelte.dev/docs#run-time-svelte-store) implementation in Python."
+  repo-branch: main
+  repo-url: "https://github.com/fredguth/svelty"
