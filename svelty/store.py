@@ -78,14 +78,14 @@ class Writable(Store[T]):
     def __len__(self) -> int:
         return len(self.subscribers)
 
-# %% ../nbs/store.ipynb 59
+# %% ../nbs/store.ipynb 58
 class Readable(Writable[T]): 
     def __init__(self, initial_value: T, start: Notifier) -> None:
         super().__init__(initial_value, start)
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Readable Store.")
 
-# %% ../nbs/store.ipynb 73
+# %% ../nbs/store.ipynb 72
 class Derived(Writable):
     ''' A Derived Store.'''
     def __init__(self,
