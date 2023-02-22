@@ -79,7 +79,8 @@ class Writable(Store[T]):
         return len(self.subscribers)
 
 # %% ../nbs/store.ipynb 57
-class Readable(Writable[T]): 
+class Readable(Writable[T]):
+    ''' A Readable Store.''' 
     def __init__(self, initial_value: T, start: Notifier) -> None:
         super().__init__(initial_value, start)
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
