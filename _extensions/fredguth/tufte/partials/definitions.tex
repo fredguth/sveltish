@@ -1,0 +1,108 @@
+
+% DEFINITIONS
+
+
+% The fancyvrb package lets us customize the formatting of verbatim
+% environments.  We use a slightly smaller font.
+\usepackage{fancyvrb}
+\fvset{fontsize=\normalsize}
+
+%%
+% Prints argument within hanging parentheses (i.e., parentheses that take
+% up no horizontal space).  Useful in tabular environments.
+\newcommand{\hangp}[1]{\makebox[0pt][r]{(}#1\makebox[0pt][l]{)}}
+
+%%
+% Prints an asterisk that takes up no horizontal space.
+% Useful in tabular environments.
+\newcommand{\hangstar}{\makebox[0pt][l]{*}}
+
+%%
+% Prints a trailing space in a smart way.
+\usepackage{xspace}
+
+
+% Prints the month name (e.g., January) and the year (e.g., 2008)
+\newcommand{\monthyear}{%
+  \ifcase\month\or January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or
+  December\fi\space\number\year
+}
+
+
+% Prints an epigraph and speaker in sans serif, all-caps type.
+\newcommand{\epigraph}[2]{%
+  \begin{fullwidth}
+  \begin{flushright}
+  \sffamily\fontsize{8}{10}\selectfont
+  \sffamily\footnotesize
+  \begin{doublespace}
+  \vspace{-8cm}\noindent\allcaps{#1}\\% epigraph
+  \noindent\allcaps{#2}\\% author
+  \end{doublespace}
+  \vspace{5.1cm}
+  \end{flushright}
+  \end{fullwidth}
+  \normalfont
+}
+
+
+\newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
+
+
+% insert 4cm before quote
+\renewenvironment{quote}{
+  \list{}{\leftmargin=3.5cm\topsep=0pt}
+  \item\relax\small\itshape
+}
+{\endlist}
+
+
+%  change chapter formatting
+\titlespacing*{\chapter}{0pt}{5cm}{1cm}
+% \titlespacing*{\section}{0pt}{.6em}{.3em}
+% \titlespacing*{\subsection}{0pt}{.4em}{.2em}
+
+\titlespacing*{\section}{0pt}{0pt}{0pt}
+\titlespacing*{\subsection}{0pt}{0pt}{0pt}
+
+
+%  Change Figure Caption in the Margin size
+% \renewenvironment{@tufte@margin@float}[2][-1.2ex]%
+%   {\FloatBarrier% process all floats before this point so the figure/table numbers stay in order.
+%   \begin{lrbox}{\@tufte@margin@floatbox}%
+%   \begin{minipage}{\marginparwidth}%
+%     \@tufte@caption@font\footnotesize% <-- Add fontnotesize
+%     \def\@captype{#2}%
+%     \hbox{}\vspace*{#1}%
+%     \@tufte@caption@justification%
+%     \@tufte@margin@par%
+%     \noindent\normalsize%<-- restored size
+%   }
+%   {\end{minipage}%
+%   \end{lrbox}%
+%   \marginpar{\usebox{\@tufte@margin@floatbox}}%
+  % }
+
+
+% \renewcommand\footnotesize{%
+%    \@setfontsize\footnotesize\@viiipt{9}%
+%    \abovedisplayskip 5\p@ \@plus2\p@ \@minus4\p@
+%    \abovedisplayshortskip \z@ \@plus\p@
+%    \belowdisplayshortskip 2.8\p@ \@plus\p@ \@minus2\p@
+%    \def\@listi{\leftmargin\leftmargini
+%                \topsep 2.5\p@ \@plus\p@ \@minus\p@
+%                \parsep 2\p@ \@plus\p@ \@minus\p@
+%                \itemsep \parsep}%
+%    \belowdisplayskip \abovedisplayskip
+% }
+
+% % Define Tuftian float styles (with the caption in the margin)
+% \newcommand{\floatc@tufteplain}[2]{%
+% \begin{lrbox}{\@tufte@caption@box}%
+%   \begin{minipage}[\floatalignment]{\marginparwidth}\hbox{}%
+%     \footnotesize\@tufte@caption@font{\@fs@cfont #1:} #2\par\normalsize%
+%   \end{minipage}%
+% \end{lrbox}%
+% \smash{\hspace{\@tufte@caption@fill}\usebox{\@tufte@caption@box}}%
+% }
