@@ -38,10 +38,13 @@ class Writable(Store[T]):
     set: Subscriber
     update: Optional[Callable[[Updater],None]] = None
 
-# %% ../nbs/store.ipynb 42
-Notifier = Callable[[Subscriber], Union[Unsubscriber, None]]
+# %% ../nbs/store.ipynb 12
+from .util import *
 
 # %% ../nbs/store.ipynb 43
+Notifier = Callable[[Subscriber], Union[Unsubscriber, None]]
+
+# %% ../nbs/store.ipynb 44
 class Writable(Store[T]):
     ''' A Writable Store.'''
     def __init__(self, 
@@ -78,15 +81,18 @@ class Writable(Store[T]):
     def __len__(self) -> int:
         return len(self.subscribers)
 
-# %% ../nbs/store.ipynb 57
+# %% ../nbs/store.ipynb 59
 class Readable(Writable[T]):
     ''' A Readable Store.''' 
-    def __init__(self, initial_value: T, start: Notifier) -> None:
+    def __init__(self, 
+                 initial_value: T, # The initial value of the store
+                 start: Notifier # A Notifier 
+                ) -> None:
         super().__init__(initial_value, start)
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Readable Store.")
 
-# %% ../nbs/store.ipynb 71
+# %% ../nbs/store.ipynb 73
 class Derived(Writable):
     ''' A Derived Store.'''
     def __init__(self,
@@ -101,3 +107,7 @@ class Derived(Writable):
     def update(self, *args, **kwargs): raise Exception("Cannot update a Derived Store.")
     def subscribe(self, callback: Subscriber) -> Unsubscriber:
         return self.target.subscribe(callback)
+
+# %% ../nbs/store.ipynb 95
+from fastcore.basics import patch
+from .util import retrieve_name

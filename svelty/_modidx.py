@@ -28,4 +28,5 @@ d = { 'settings': { 'branch': 'main',
                               'svelty.store.Writable.set': ('store.html#writable.set', 'svelty/store.py'),
                               'svelty.store.Writable.subscribe': ('store.html#writable.subscribe', 'svelty/store.py'),
                               'svelty.store.Writable.update': ('store.html#writable.update', 'svelty/store.py')},
-            'svelty.util': {'svelty.util.safe_not_equal': ('util.html#safe_not_equal', 'svelty/util.py')}}}
+            'svelty.util': { 'svelty.util.retrieve_name': ('util.html#retrieve_name', 'svelty/util.py'),
+                             'svelty.util.safe_not_equal': ('util.html#safe_not_equal', 'svelty/util.py')}}}
