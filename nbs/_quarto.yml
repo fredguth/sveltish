@@ -12,9 +12,21 @@ website:
     background: FloralWhite
     search: true
     collapse-below: lg
+    left:
+      - text: Svelte Stores in Python
     right:
       - icon: github
         href: "https://github.com/fastai/nbdev"
+  sidebar:
+    style: docked
+    contents:
+      - section: Welcome
+        contents: index.ipynb
+      - section: API
+        contents: 
+          - 00_stores.ipynb
+          - 10_utils.ipynb
+            
 format:
   html:
     page-layout: full
@@ -27,8 +39,8 @@ format:
     backgroundcolor: FloralWhite
     sidebarbackgroundcolor: FloralWhite
     mainfont: "heuristica"
-    toc-location: left
+    toc-location: right
     toc-title: "Contents"
     default-image-extension: svg
 
-metadata-files: [nbdev.yml, sidebar.yml]
+metadata-files: [nbdev.yml]

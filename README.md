@@ -262,9 +262,15 @@ except Exception as error:
 
     __init__() missing 1 required positional argument: 'start'
 
-::: {.callout-note} The Svelte Store api allow you to create a Readable
-Store without a Notifier. See discussion
-[here.](https://github.com/sveltejs/svelte/issues/8300)
+<div>
+
+> **Note**
+>
+> The Svelte Store api allow you to create a Readable Store without a
+> Notifier. See discussion
+> [here.](https://github.com/sveltejs/svelte/issues/8300)
+
+</div>
 
 #### **Derived Stores**
 

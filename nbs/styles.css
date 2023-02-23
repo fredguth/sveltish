@@ -1,7 +1,12 @@
-.column-margin figcaption, .margin-caption, div.aside, aside, .column-margin {
+.column-margin figcaption,
+.margin-caption,
+div.aside,
+aside,
+.column-margin {
     color: #5a6570;
     font-size: .625rem;
 }
+
 .sidebar-title {
     margin-top: .25rem;
     padding-bottom: .5rem;
@@ -26,10 +31,11 @@
     font-size: 1.3rem;
     margin-right: 2rem;
 }
+
 body {
     font-size: 16px;
     line-height: 24px;
-    quotes: "‘" "’";
+    quotes: "‘""’";
 }
 
 /* h1 {
@@ -49,18 +55,20 @@ header .chapter-title {
 
 .sidebar {
     font-family: sans-serif;
-    
+
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .sidebar::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .sidebar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
 .navbar-brand {
@@ -68,52 +76,70 @@ header .chapter-title {
     font-style: normal;
     text-transform: uppercase;
     letter-spacing: .11em;
-    line-height: 1.5rem;
-    font-size: 1em;
-}
-.sidebar-header > div > div > a > i {
-display: none
+    line-height: 1.2rem;
+    font-size: 1.5em;
 }
 
-.navbar-brand > a{
+.sidebar-header>div>div>a>i {
+    display: none
+}
+
+.navbar-dark .navbar-brand {
     color: maroon;
 }
+
+.navbar .dropdown-header {
+    text-transform: none;
+    font-style: italic;
+}
+
+.navbar-brand>a {
+    color: maroon;
+}
+
 .sidebar nav[role=doc-toc] ul {
     font-size: 14px;
 }
+
 .sidebar nav[role=doc-toc] ul>li>a.active {
     border-left: 1px solid maroon;
     color: maroon !important;
 }
+
 .sidebar nav[role=doc-toc] ul>li>ul>li>a.active {
     border-left: 1px solid maroon;
     color: maroon !important;
 }
+
 .sidebar-title {
     font-family: helvetica, monospace;
     font-style: normal;
     text-transform: uppercase;
     letter-spacing: .11em;
-    line-height: 1.12rem; 
+    line-height: 1.12rem;
     font-size: .48rem;
 }
-.quarto-secondary-nav-title, .title {
+
+.quarto-secondary-nav-title,
+.title {
     /* font-family: 'Minion Pro', 'Crimson', serif; */
     font-family: helvetica, monospace;
     font-style: normal;
     text-transform: uppercase;
     letter-spacing: .125em;
-    line-height: 1.25em; 
+    line-height: 1.25em;
     font-size: 1.5rem;
     padding-top: .825rem
-    
 }
+
 .quarto-secondary-nav-title {
     font-size: 1.1rem;
 }
+
 .blockquote {
     border-left: none;
 }
+
 .blockquote p {
     font-size: smaller;
     color: #5a6570;
@@ -127,7 +153,7 @@ div.description {
     font-style: italic;
     font-size: 135%;
     opacity: 70%;
-  }
+}
 
 @media (min-width:1280px) {
     .blockquote p {
@@ -135,7 +161,9 @@ div.description {
     }
 }
 
-.panel-caption, .figure-caption, figcaption {
+.panel-caption,
+.figure-caption,
+figcaption {
     color: #5a6570;
     font-size: .825rem;
     margin-bottom: .825rem;
@@ -159,7 +187,10 @@ div.description {
     background: transparent;
 }
 
-div.sidebar-item-container .active, div.sidebar-item-container :hover, div.sidebar-item-container .show>.nav-link, div.sidebar-item-container .sidebar-link>code {
+div.sidebar-item-container .active,
+div.sidebar-item-container :hover,
+div.sidebar-item-container .show>.nav-link,
+div.sidebar-item-container .sidebar-link>code {
     color: maroon;
 }
 

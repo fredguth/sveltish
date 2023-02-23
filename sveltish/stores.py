@@ -42,10 +42,10 @@ class Writable(Store[T]):
     set: Subscriber
     update: Optional[Callable[[Updater],None]] = None
 
-# %% ../nbs/00_stores.ipynb 12
+# %% ../nbs/00_stores.ipynb 10
 from .util import safe_not_equal
 
-# %% ../nbs/00_stores.ipynb 13
+# %% ../nbs/00_stores.ipynb 11
 class Writable(Store[T]):
     ''' A Writable Store.'''
     def __init__(self:Writable,
@@ -93,7 +93,7 @@ class Writable(Store[T]):
         ''' The length of the store is the number of subscribers.'''
         return len(self.subscribers)
 
-# %% ../nbs/00_stores.ipynb 17
+# %% ../nbs/00_stores.ipynb 13
 class Readable(Writable[T]):
     ''' A Readable Store.''' 
     def __init__(self, 
@@ -104,7 +104,7 @@ class Readable(Writable[T]):
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Readable Store.")
 
-# %% ../nbs/00_stores.ipynb 20
+# %% ../nbs/00_stores.ipynb 14
 class Derived(Writable):
     ''' A Derived Store.'''
     def __init__(self:Derived, 
