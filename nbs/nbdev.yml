@@ -2,7 +2,7 @@ project:
   output-dir: _docs
 
 website:
-  title: "Sveltish"
+  title: "sveltish"
   site-url: "https://fredguth.github.io/sveltish"
   description: "A Svelte Stores implementation in Python."
   repo-branch: main
