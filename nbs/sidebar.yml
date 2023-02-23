@@ -1,10 +1,6 @@
 website:
   sidebar:
-    style: floating
     contents:
-      - auto: "/*.ipynb"
       - index.ipynb
-      - walk.ipynb
-      - section: API
-        contents: api/*
-
+      - 00_stores.ipynb
+      - 10_utils.ipynb

@@ -16,6 +16,7 @@ covT = TypeVar("covT", covariant=True)
 Subscriber = Callable[[T], None] # a callback
 Unsubscriber = Callable[[], None] # a callback to be used upon termination of the subscription    
 Updater = Callable[[T], T]
+Notifier = Callable[[Subscriber], Union[Unsubscriber, None]]
 
 # %% ../nbs/00_stores.ipynb 8
 class StoreProtocol(Protocol, Generic[covT]):
@@ -47,106 +48,92 @@ from .util import safe_not_equal
 # %% ../nbs/00_stores.ipynb 13
 class Writable(Store[T]):
     ''' A Writable Store.'''
-    def __init__(self, 
-                 initial_value: T = None # the initial value of the store
-                 ) -> None:
-        self.value: T = initial_value
+    def __init__(self:Writable,
+                initial_value: Any = None, # initial value of the store
+                start: Notifier = lambda x: None # A Notifier (Optional)
+                ) -> None:
+        self.value = initial_value
         self.subscribers: Set[Subscriber] = set() # callbacks to be called when the value changes
-
-    def subscribe(self, callback: Subscriber) -> Unsubscriber:
+        self.start: Notifier = start # function called when the first subscriber is added
+        self.stop: Optional[Unsubscriber] = None  # functional called when the last subscriber is removed
+        
+    def subscribe(self:Writable,
+                  callback: Subscriber # callback to be called when the store value changes
+                  ) -> Unsubscriber:
+        ''' Adds callback to the list of subscribers.'''
         self.subscribers.add(callback)
+        if (len(self.subscribers) == 1):
+            self.stop = self.start(callback) or (lambda: None) #type: ignore
         callback(self.value)
 
         def unsubscribe() -> None:
-            # the unsubscribe can be called multiple times, 
-            # so we need to check if the callback is still in the set
+            ''' Removes callback from the list of subscribers.'''
             self.subscribers.remove(callback) if callback in self.subscribers else None
+            if (len(self.subscribers) == 0):
+                self.stop() if self.stop else None #type: ignore
+                self.stop = None #type: ignore
         return unsubscribe
-    
-    def set(self, new_value: T) -> None:
+        
+    def set(self, 
+            new_value: T # The new value of the store
+            ) -> None:
+        ''' Set value of store.'''
         if (safe_not_equal(self.value, new_value)):
             self.value = new_value
             for subscriber in self.subscribers:
                 subscriber(new_value)
                 
-    def update(self, fn: Callable[[T], T]) -> None:
+    def update(self, 
+               fn: Callable[[T], T] # a callback that takes the existing store value and updates it
+               ) -> None:
+        ''' Update the store value by applying `fn` to the existing value.'''
         self.set(fn(self.value))
     
     def __len__(self) -> int:
         ''' The length of the store is the number of subscribers.'''
         return len(self.subscribers)
 
-# %% ../nbs/00_stores.ipynb 44
-Notifier = Callable[[Subscriber], Union[Unsubscriber, None]]
-
-# %% ../nbs/00_stores.ipynb 45
-@patch 
-def __init__(self:Writable,
-                initial_value: Any = None, # The initial value of the store
-                start: Notifier = lambda x: None # A Notifier (Optional)
-                ) -> None:
-    self.value = initial_value
-    self.subscribers: Set[Subscriber] = set() #type: ignore
-    self.stop: Optional[Unsubscriber] = None  #type: ignore
-    self.start: Notifier = start              #type: ignore
-
-
-@patch
-def subscribe(self:Writable, callback: Subscriber) -> Unsubscriber:
-    self.subscribers.add(callback)
-    if (len(self.subscribers) == 1):
-        self.stop = self.start(callback) or (lambda: None) #type: ignore
-    callback(self.value)
-
-    def unsubscribe() -> None:
-        self.subscribers.remove(callback) if callback in self.subscribers else None
-        if (len(self.subscribers) == 0):
-            self.stop() if self.stop else None #type: ignore
-            self.stop = None #type: ignore
-    return unsubscribe
-
-# %% ../nbs/00_stores.ipynb 61
+# %% ../nbs/00_stores.ipynb 16
 class Readable(Writable[T]):
     ''' A Readable Store.''' 
     def __init__(self, 
-                 initial_value: T, # The initial value of the store
-                 start: Notifier # A Notifier 
+                 initial_value: T, # initial value of the store
+                 start: Notifier # function called when the first subscriber is added
                 ) -> None:
         super().__init__(initial_value, start)
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Readable Store.")
 
-# %% ../nbs/00_stores.ipynb 75
+# %% ../nbs/00_stores.ipynb 19
 class Derived(Writable):
     ''' A Derived Store.'''
-    def __init__(self,
-                  source: Store, # The source store
-                  fn: Updater # A function that takes the source store's value and returns a new value
-                  ) -> None:
-        self.target = Writable(source.get())
-        self.start: Notifier = lambda x: self.target.set(fn(x))
-        self.stop = source.subscribe(self.start)
-    def get(self) -> T: return self.target.get()
+    def __init__(self:Derived, 
+             s: Union[Store, list[Store]], # source store(s)
+             fn: Callable, # a callback that takes the source store(s) values and returns the derived value
+             ) -> None:
+        
+        self.target = Writable(None) # target store
+        
+        isStore = isinstance(s, Store)
+        isList = isinstance(s, list) and all([isinstance(x, Store) for x in s])
+        if not isStore and not isList: raise Exception("s must be a Store or a list of Stores")
+        self.sources:list[Store] = [s] if isStore else s 
+        self.fn = fn 
+        
+        # subscribe to each source store and update the target when any of them change
+        self.unsubscribers = [(lambda s=s: s.subscribe(self._update))(s) for s in self.sources] 
+        
+    def get(self): return self.target.get()
+
     def set(self, *args, **kwargs): raise Exception("Cannot set a Derived Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Derived Store.")
-    def subscribe(self, callback: Subscriber) -> Unsubscriber:
+    
+    def subscribe(self, 
+                  callback: Subscriber # callback to be called when any of the source stores change
+                  ) -> Unsubscriber:
+        ''' Adds callback to the list of subscribers.'''
         return self.target.subscribe(callback)
-
-# %% ../nbs/00_stores.ipynb 96
-@patch # does not like type annotations
-def __init__(self:Derived, 
-             s: Union[Store, list[Store]],
-             fn: Callable,
-             ) -> None:
-    isStore = isinstance(s, Store)
-    isList = isinstance(s, list) and all([isinstance(x, Store) for x in s])
-    if not isStore and not isList: raise Exception("s must be a Store or a list of Stores")
-    self.sources:list[Store] = [s] if isStore else s # type: ignore
-    self.fn = fn # type: ignore
-    self.target = Writable(None)
-    self.unsubscribers = [(lambda s=s: s.subscribe(self._update))(s) for s in self.sources] # type: ignore
-
-@patch
-def _update(self:Derived, x): # ignore the new value and just refresh the target from sources
-    values = [(lambda s=s: s.get())(s) for s in self.sources] # type: ignore
-    self.target.set(self.fn(*values)) # type: ignore
+    
+    def _update(self:Derived, x): # ignore the new value and just refresh the target from sources
+        values = [(lambda s=s: s.get())(s) for s in self.sources] # type: ignore
+        self.target.set(self.fn(*values)) # type: ignore

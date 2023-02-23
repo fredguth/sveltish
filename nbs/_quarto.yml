@@ -4,22 +4,31 @@ project:
     port: 2401
     browser: false
 
-format:
-  html:
-    theme: cosmo
-    css: styles.css
-    toc: true
-
 website:
   twitter-card: true
   open-graph: true
   repo-actions: [issue]
   navbar:
-    background: primary
+    background: FloralWhite
     search: true
     collapse-below: lg
     right:
       - icon: github
         href: "https://github.com/fastai/nbdev"
-        
+format:
+  html:
+    page-layout: full
+    reference-location: margin
+    citation-location: margin
+    # title-block-style: none
+    css: styles.css
+    number-sections: false
+    linkcolor: Maroon
+    backgroundcolor: FloralWhite
+    sidebarbackgroundcolor: FloralWhite
+    mainfont: "heuristica"
+    toc-location: left
+    toc-title: "Contents"
+    default-image-extension: svg
+
 metadata-files: [nbdev.yml, sidebar.yml]
