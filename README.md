@@ -119,8 +119,8 @@ stop2 = count.subscribe(lambda x: print(f"double of count is {2*x}"))
 reset()
 ```
 
-    Count is now 0
     double of count is 0
+    Count is now 0
 
 ``` python
 stop()
@@ -227,28 +227,20 @@ from sveltish.stores import Readable
 # now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=23, tm_hour=18, tm_min=25, tm_sec=36, tm_wday=3, tm_yday=54, tm_isdst=0))
-
 While there is no subscriber, the Readable will not be updated.
 
 ``` python
 # now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=23, tm_hour=18, tm_min=25, tm_sec=36, tm_wday=3, tm_yday=54, tm_isdst=0))
-
 ``` python
 # OhPleaseStop = now.subscribe(lambda x: print(time.strftime(f"%H:%M:%S", x), end="\r"))
 ```
-
-    18:25:36
 
 ``` python
 # time.sleep(3)
 # OhPleaseStop()
 ```
-
-    18:25:39
 
 A Readable store without a `start` function is a constant value and has
 no meaning for us. Therefore, `start` is a required argument.
@@ -296,8 +288,8 @@ count.set(2)
 test_eq(double.get(), 4)
 ```
 
-    count is 2
     double is 4
+    count is 2
 
 Building on our previous example, we can create a store that derives the
 elapsed time since the original store was started.
@@ -316,14 +308,10 @@ elapsed time since the original store was started.
 # stopElapsed = elapsed.subscribe(lambda x: print(f"Elapsed time: {x} seconds.", end="\r"))
 ```
 
-    Elapsed time: 4.0 seconds.
-
 ``` python
 # time.sleep(10)
 # stopElapsed()
 ```
-
-    Elapsed time: 14.0 seconds.
 
 Derived stores allow us to transform the value of a store. In RxPy they
 are called `operators`. You can build several operators like: `filter`,
@@ -357,8 +345,8 @@ Updating the age does not trigger the name subscriber.
 user.update(lambda x: x | {"name": "Fred"})
 ```
 
-    Name: Fred
     User: {'name': 'Fred', 'age': 45}
+    Name: Fred
 
 Only changes to the name of the user triggers the `name` subscriber.
 
