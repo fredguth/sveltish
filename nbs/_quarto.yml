@@ -17,7 +17,9 @@ website:
   navbar:
     background: primary
     search: true
-  sidebar:
-    style: floating
-
+    collapse-below: lg
+    right:
+      - icon: github
+        href: "https://github.com/fastai/nbdev"
+        
 metadata-files: [nbdev.yml, sidebar.yml]

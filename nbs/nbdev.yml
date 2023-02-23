@@ -2,8 +2,8 @@ project:
   output-dir: _docs
 
 website:
-  title: "svelty"
-  site-url: "https://fredguth.github.io/svelty"
+  title: "Sveltish"
+  site-url: "https://fredguth.github.io/sveltish"
   description: "A Svelte Stores implementation in Python."
   repo-branch: main
-  repo-url: "https://github.com/fredguth/svelty"
+  repo-url: "https://github.com/fredguth/sveltish"
