@@ -97,9 +97,6 @@ class Writable(Store[T]):
     def __len__(self) -> int:
         ''' The length of the store is the number of subscribers.'''
         return len(self.subscribers)
-    def __del__(self) -> None:
-        ''' When the store is deleted, call the stop function'''
-        self.stop() if self.stop else None
 
 # %% ../nbs/00_stores.ipynb 13
 class Readable(Writable[T]):
@@ -119,18 +116,19 @@ class Derived(Writable):
              s: Union[Store, list[Store]], # source store(s)
              fn: Callable, # a callback that takes the source store(s) values and returns the derived value
              ) -> None:
-        
-        self.target = Writable(None) # target store
-        
         isStore = isinstance(s, Store)
         isList = isinstance(s, list) and all([isinstance(x, Store) for x in s])
         if not isStore and not isList: raise Exception("s must be a Store or a list of Stores")
         self.sources:list[Store] = [s] if isStore else s 
-        print(f"sources: {self.sources}")
         self.fn = fn 
-        
-        # subscribe to each source store and update the target when any of them change
-        self.unsubscribers = [(lambda s=s: s.subscribe(self._update))(s) for s in self.sources] 
+        def start(set_fn: Subscriber):
+            self._update(None) # update target values
+            # because of this update, the derived subscribers will be called twice on subscription
+            unsubscribers = [(lambda s=s: s.subscribe(self._update))(s) for s in self.sources]
+            def stop(): 
+                for unsubscribe in unsubscribers: unsubscribe()
+            return stop
+        self.target = Writable(fn(*[(lambda s=s: s.get())(s) for s in self.sources]), start)
         
     def get(self): return self.target.get()
 
@@ -147,4 +145,4 @@ class Derived(Writable):
         values = [(lambda s=s: s.get())(s) for s in self.sources] # type: ignore
         self.target.set(self.fn(*values)) # type: ignore
     def __del__(self:Derived):
-        for stop in self.unsubscribers: stop()
+        print(dir(self))
