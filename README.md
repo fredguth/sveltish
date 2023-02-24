@@ -119,8 +119,8 @@ stop2 = count.subscribe(lambda x: print(f"double of count is {2*x}"))
 reset()
 ```
 
-    double of count is 0
     Count is now 0
+    double of count is 0
 
 ``` python
 stop()
@@ -197,22 +197,85 @@ objects. For those cases, we have readable stores.
 from sveltish.stores import Readable
 ```
 
+A Readable store without a `start` function is a constant value and has
+no meaning for us. Therefore, `start` is a required argument.
+
 ``` python
-# from sveltish.stores import Readable
-# from threading import Event, Thread
-# import time
+try:
+    c = Readable(0) # shoud fail
+except Exception as error:
+    print(error)
 
-
-# def start(set): # the start function is the publisher
-#     stopped = Event()
-#     def loop(): # needs to be in a separate thread
-#         while not stopped.wait(1): # in seconds
-#             set(time.localtime())
-#     Thread(target=loop).start()    
-#     return stopped.set
-   
-# now = Readable(time.localtime(), start)
+test_fail(lambda: Readable(0))
 ```
+
+    __init__() missing 1 required positional argument: 'start'
+
+``` python
+class Publisher:
+    def __init__(self): self.set = lambda x: None
+    def set_set(self, set): 
+        self.set = set
+        return lambda: None
+    def use_set(self, value): self.set(value)
+```
+
+``` python
+p = Publisher()
+reader = Readable(0, p.set_set)
+reader
+```
+
+    Readable(0)
+
+Ths store only starts updating after the first subscriber. Here, the
+publisher does not change the store.
+
+``` python
+p.use_set(1), reader
+```
+
+    (None, Readable(0))
+
+``` python
+stop = reader.subscribe(lambda x: print(f"reader is now {x}"))
+```
+
+    reader is now 0
+
+``` python
+p.use_set(2)
+```
+
+    reader is now 2
+
+``` python
+stop()
+```
+
+Another example of Readable Store usage:
+
+``` python
+from threading import Event, Thread
+import time
+```
+
+``` python
+def start(set): # the start function is the publisher
+    stopped = Event()
+    def loop(): # needs to be in a separate thread
+        while not stopped.wait(1): # in seconds
+            set(time.localtime())
+    Thread(target=loop).start()    
+    return stopped.set
+```
+
+``` python
+now = Readable(time.localtime(), start)
+now
+```
+
+    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=24, tm_hour=16, tm_min=58, tm_sec=1, tm_wday=4, tm_yday=55, tm_isdst=0))
 
 <div>
 
@@ -223,36 +286,26 @@ from sveltish.stores import Readable
 
 </div>
 
-``` python
-# now
-```
-
 While there is no subscriber, the Readable will not be updated.
 
 ``` python
-# now
+now
 ```
+
+    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=24, tm_hour=16, tm_min=58, tm_sec=1, tm_wday=4, tm_yday=55, tm_isdst=0))
 
 ``` python
-# OhPleaseStop = now.subscribe(lambda x: print(time.strftime(f"%H:%M:%S", x), end="\r"))
+OhPleaseStop = now.subscribe(lambda x: print(time.strftime(f"%H:%M:%S", x), end="\r"))
 ```
+
+    16:58:01
 
 ``` python
-# time.sleep(3)
-# OhPleaseStop()
+time.sleep(2)
+OhPleaseStop()
 ```
 
-A Readable store without a `start` function is a constant value and has
-no meaning for us. Therefore, `start` is a required argument.
-
-``` python
-try:
-    c = Readable(0) # shoud fail
-except Exception as error:
-    print(error)
-```
-
-    __init__() missing 1 required positional argument: 'start'
+    16:58:03
 
 <div>
 
@@ -272,6 +325,8 @@ A `Derived Store` stores a value based on the value of another store.
 from sveltish.stores import Derived
 ```
 
+For example:
+
 ``` python
 count = Writable(1)
 stopCount = count.subscribe(lambda x: print(f"count is {x}"))
@@ -288,30 +343,49 @@ count.set(2)
 test_eq(double.get(), 4)
 ```
 
-    double is 4
     count is 2
+    double is 4
+
+``` python
+stopCount(), stopDouble()
+```
+
+    (None, None)
 
 Building on our previous example, we can create a store that derives the
 elapsed time since the original store was started.
 
 ``` python
-# def calc_elapsed(then):
-#     now = time.localtime()
-#     return time.mktime(now) - time.mktime(then)
+def calc_elapsed(then):
+    now = time.localtime()
+    return time.mktime(now) - time.mktime(then)
 ```
 
 ``` python
-# elapsed = Derived(now, calc_elapsed)
+now
 ```
 
-``` python
-# stopElapsed = elapsed.subscribe(lambda x: print(f"Elapsed time: {x} seconds.", end="\r"))
-```
+    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=24, tm_hour=16, tm_min=58, tm_sec=3, tm_wday=4, tm_yday=55, tm_isdst=0))
 
 ``` python
-# time.sleep(10)
-# stopElapsed()
+elapsed = Derived(now, lambda x: time.strftime(f"%H:%M:%S", x))
+elapsed
 ```
+
+    Derived('16:58:03')
+
+``` python
+stopElapsed = elapsed.subscribe(lambda x: print(f"Elapsed time: {x} seconds.", end="\r"))
+```
+
+    Elapsed time: 16:58:03 seconds.
+
+``` python
+time.sleep(1)
+stopElapsed()
+```
+
+    Elapsed time: 16:58:05 seconds.
 
 Derived stores allow us to transform the value of a store. In RxPy they
 are called `operators`. You can build several operators like: `filter`,
@@ -339,7 +413,8 @@ user.update(lambda x: x | {"age": 45})
 
     User: {'name': 'John', 'age': 45}
 
-Updating the age does not trigger the name subscriber.
+Updating the age does not trigger the `name subscriber`. Let’s see what
+happens when we update the name.
 
 ``` python
 user.update(lambda x: x | {"name": "Fred"})
@@ -349,6 +424,12 @@ user.update(lambda x: x | {"name": "Fred"})
     Name: Fred
 
 Only changes to the name of the user triggers the `name` subscriber.
+
+``` python
+stopName(), stopLog()
+```
+
+    (None, None)
 
 Another cool thing about Derived Stores is that you can derive from a
 list of stores. Let’s build a `zip` operator.
@@ -363,10 +444,44 @@ a,b
 
 ``` python
 zipper = Derived([a,b], lambda a,b: list(zip(a,b)))
-test_eq(zipper.get(), [(1, 5), (2, 6), (3, 7), (4, 8)])
 ```
 
 ``` python
+test_eq(zipper.get(), [(1, 5), (2, 6), (3, 7), (4, 8)])
+```
+
+While `zipper` has no subscribers, it keeps the initial value, it is
+`stopped`.
+
+``` python
 a.set([4,3,2,1])
+test_eq(zipper.get(), [(1, 5), (2, 6), (3, 7), (4, 8)])
+```
+
+A subscription `starts` zipper and it will start to react to the changes
+of the stores.
+
+``` python
+u = zipper.subscribe(lambda x: None)
 test_eq(zipper.get(), [(4, 5), (3, 6), (2, 7), (1, 8)])
 ```
+
+``` python
+b.set([8,7,6,5])
+test_eq(zipper.get(), [(4, 8), (3, 7), (2, 6), (1, 5)])
+```
+
+``` python
+u()
+```
+
+## Missing features
+
+You may have noticed that along the way we had always to subscribe and
+then had to remember to unsubscribe when we were done. This is a bit of
+a nuisance. Svelte has a compiler that provide some [syntatic
+sugar](https://svelte.dev/tutorial/auto-subscriptions) to make this
+easier. They call it `auto-subscriptions`.
+
+`Sveltish` does not have `auto-subscriptions` yet. But if you have a
+nice idea how to implement it, please let me know.

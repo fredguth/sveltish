@@ -26,8 +26,8 @@ d = { 'settings': { 'branch': 'main',
                                  'sveltish.stores.Writable': ('stores.html#writable', 'sveltish/stores.py'),
                                  'sveltish.stores.Writable.__init__': ('stores.html#writable.__init__', 'sveltish/stores.py'),
                                  'sveltish.stores.Writable.__len__': ('stores.html#writable.__len__', 'sveltish/stores.py'),
+                                 'sveltish.stores.Writable.__set': ('stores.html#writable.__set', 'sveltish/stores.py'),
                                  'sveltish.stores.Writable.set': ('stores.html#writable.set', 'sveltish/stores.py'),
                                  'sveltish.stores.Writable.subscribe': ('stores.html#writable.subscribe', 'sveltish/stores.py'),
                                  'sveltish.stores.Writable.update': ('stores.html#writable.update', 'sveltish/stores.py')},
-            'sveltish.util': { 'sveltish.util.retrieve_name': ('utils.html#retrieve_name', 'sveltish/util.py'),
-                               'sveltish.util.safe_not_equal': ('utils.html#safe_not_equal', 'sveltish/util.py')}}}
+            'sveltish.util': {'sveltish.util.safe_not_equal': ('utils.html#safe_not_equal', 'sveltish/util.py')}}}
