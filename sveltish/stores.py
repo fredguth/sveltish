@@ -63,7 +63,7 @@ class Writable(Store[T]):
         ''' Adds callback to the list of subscribers.'''
         self.subscribers.add(callback)
         if (len(self.subscribers) == 1):
-            self.stop = self.start(callback) or (lambda: None) #type: ignore
+            self.stop = self.start(self.__set) or (lambda: None) #type: ignore
         callback(self.value)
 
         def unsubscribe() -> None:
@@ -74,15 +74,20 @@ class Writable(Store[T]):
                 self.stop = None #type: ignore
         return unsubscribe
         
-    def set(self, 
+    def __set(self, 
             new_value: T # The new value of the store
             ) -> None:
-        ''' Set value of store.'''
+        ''' Internal implementation of set used inside Readable Store, which does not exposes set.'''
         if (safe_not_equal(self.value, new_value)):
             self.value = new_value
             for subscriber in self.subscribers:
                 subscriber(new_value)
-                
+    def set(self, 
+            new_value: T # The new value of the store
+            ) -> None:
+        ''' Set value of store.'''
+        self.__set(new_value)
+    
     def update(self, 
                fn: Callable[[T], T] # a callback that takes the existing store value and updates it
                ) -> None:
@@ -92,6 +97,9 @@ class Writable(Store[T]):
     def __len__(self) -> int:
         ''' The length of the store is the number of subscribers.'''
         return len(self.subscribers)
+    def __del__(self) -> None:
+        ''' When the store is deleted, call the stop function'''
+        self.stop() if self.stop else None
 
 # %% ../nbs/00_stores.ipynb 13
 class Readable(Writable[T]):
@@ -118,6 +126,7 @@ class Derived(Writable):
         isList = isinstance(s, list) and all([isinstance(x, Store) for x in s])
         if not isStore and not isList: raise Exception("s must be a Store or a list of Stores")
         self.sources:list[Store] = [s] if isStore else s 
+        print(f"sources: {self.sources}")
         self.fn = fn 
         
         # subscribe to each source store and update the target when any of them change
