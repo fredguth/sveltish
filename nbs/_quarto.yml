@@ -16,7 +16,7 @@ website:
       - text: Svelte Stores in Python
     right:
       - icon: github
-        href: "https://github.com/fastai/nbdev"
+        href: "https://github.com/fredguth/sveltish"
   sidebar:
     style: docked
     contents:
