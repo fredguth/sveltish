@@ -137,3 +137,5 @@ class Derived(Writable):
     def _update(self:Derived, x): # ignore the new value and just refresh the target from sources
         values = [(lambda s=s: s.get())(s) for s in self.sources] # type: ignore
         self.target.set(self.fn(*values)) # type: ignore
+    def __del__(self:Derived):
+        for stop in self.unsubscribers: stop()
