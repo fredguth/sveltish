@@ -7,7 +7,6 @@ project:
 website:
   twitter-card: true
   open-graph: true
-  repo-actions: [issue]
   navbar:
     background: FloralWhite
     search: true
@@ -26,7 +25,15 @@ website:
         contents: 
           - 00_stores.ipynb
           - 10_utils.ipynb
-            
+  page-footer: 
+    left: "Copyright 2023, Fred Guth" 
+    right: 
+      - text: Built with `nbdev`
+        href: https://nbdev.fast.ai
+      - icon: github
+        href: https://github.com/fredguth/sveltish
+
+
 format:
   html:
     page-layout: full
