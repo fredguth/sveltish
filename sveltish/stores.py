@@ -8,7 +8,7 @@ from fastcore.test import test_eq, test, test_fail
 from fastcore.basics import patch
 
 # %% auto 0
-__all__ = ['T', 'covT', 'Subscriber', 'Unsubscriber', 'Updater', 'Notifier', 'StoreProtocol', 'Writable', 'Readable', 'Derived']
+__all__ = ['T', 'covT', 'Subscriber', 'Unsubscriber', 'Updater', 'Notifier', 'StoreProtocol', 'Writable', 'Readable']
 
 # %% ../nbs/00_stores.ipynb 7
 T = TypeVar("T")
@@ -108,39 +108,3 @@ class Readable(Writable[T]):
         super().__init__(initial_value, start)
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Readable Store.")
-
-# %% ../nbs/00_stores.ipynb 14
-class Derived(Writable):
-    ''' A Derived Store.'''
-    def __init__(self:Derived, 
-             s: Union[Store, list[Store]], # source store(s)
-             fn: Callable, # a callback that takes the source store(s) values and returns the derived value
-             ) -> None:
-        isStore = isinstance(s, Store)
-        isList = isinstance(s, list) and all([isinstance(x, Store) for x in s])
-        if not isStore and not isList: raise Exception("s must be a Store or a list of Stores")
-        self.sources:list[Store] = [s] if isStore else s 
-        self.fn = fn 
-        def start(set_fn: Subscriber):
-            self._update(None) # update target values
-            # because of this update, the derived subscribers will be called twice on subscription
-            unsubscribers = [(lambda s=s: s.subscribe(self._update))(s) for s in self.sources]
-            def stop(): 
-                for unsubscribe in unsubscribers: unsubscribe()
-            return stop
-        self.target = Writable(fn(*[(lambda s=s: s.get())(s) for s in self.sources]), start)
-        
-    def get(self): return self.target.get()
-
-    def set(self, *args, **kwargs): raise Exception("Cannot set a Derived Store.")
-    def update(self, *args, **kwargs): raise Exception("Cannot update a Derived Store.")
-    
-    def subscribe(self, 
-                  callback: Subscriber # callback to be called when any of the source stores change
-                  ) -> Unsubscriber:
-        ''' Adds callback to the list of subscribers.'''
-        return self.target.subscribe(callback)
-    
-    def _update(self:Derived, x): # ignore the new value and just refresh the target from sources
-        values = [(lambda s=s: s.get())(s) for s in self.sources] # type: ignore
-        self.target.set(self.fn(*values)) # type: ignore
