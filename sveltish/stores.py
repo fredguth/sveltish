@@ -2,7 +2,7 @@
 
 # %% ../nbs/00_stores.ipynb 1
 from __future__ import annotations
-from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, Any
+from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, Any, overload
 from typing_extensions import Annotated
 from fastcore.test import test_eq, test, test_fail
 from fastcore.basics import patch
@@ -36,16 +36,18 @@ class Store(StoreProtocol[T]):
         return lambda: None
     def get(self) -> T: return self.value
 
+
+# %% ../nbs/00_stores.ipynb 10
 class Readable(Store[T]): pass
 
 class Writable(Store[T]):
     set: Subscriber
     update: Optional[Callable[[Updater],None]] = None
 
-# %% ../nbs/00_stores.ipynb 10
+# %% ../nbs/00_stores.ipynb 11
 from .util import safe_not_equal
 
-# %% ../nbs/00_stores.ipynb 11
+# %% ../nbs/00_stores.ipynb 12
 class Writable(Store[T]):
     ''' A Writable Store.'''
     def __init__(self:Writable,
@@ -98,7 +100,7 @@ class Writable(Store[T]):
         ''' The length of the store is the number of subscribers.'''
         return len(self.subscribers)
 
-# %% ../nbs/00_stores.ipynb 13
+# %% ../nbs/00_stores.ipynb 14
 class Readable(Writable[T]):
     ''' A Readable Store.''' 
     def __init__(self, 

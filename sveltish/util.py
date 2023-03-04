@@ -15,7 +15,7 @@ from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, 
 from typing_extensions import Annotated
 
 # %% ../nbs/10_utils.ipynb 6
-def compose(*functions: Callable[[Any], Any]) -> Callable[[Any], Any]:
+def compose(*functions):
     """Compose multiple functions left to right.
 
     Examples:
@@ -27,8 +27,8 @@ def compose(*functions: Callable[[Any], Any]) -> Callable[[Any], Any]:
     Returns:
         The composed function.
     """
-
-    def _compose(x: Any) -> Any:
-        return reduce(lambda v, f: f(v), functions, x)
-
-    return _compose
+    if (len(functions)==0): return lambda x: x
+    def pack(x): return x if type(x) is tuple else (x,)
+    def call(f, g):
+       return lambda *x: g(*pack(f(*pack(x))))
+    return reduce(call, functions)
