@@ -122,22 +122,22 @@ class Derived(Writable):
                  s: Union[Store, list[Store]], # source store(s)
                  *functions: Callable, # a callback that takes the source store(s) values and returns the derived value
              ) -> None:
-        isStore = isinstance(s, Store)
-        isList = isinstance(s, list) and all([isinstance(x, Store) for x in s])
-        if not isStore and not isList: raise Exception("s must be a Store or a list of Stores")
-        self.sources:list[Store] = [s] if isStore else s
+        self.sources = L(s)
+        if not all(isinstance(x, Store) for x in self.sources):
+            raise Exception("s must be a Store or a list of Stores")
         self.fn = compose(*functions)
-        self.__target_set_fn = None
+        
         def start(set_fn: Subscriber):
-            self.__target_set_fn = set_fn
-            self.__sync(None) # sync target with source values, they can have changed since Derived creation
-            # because of this update, the derived subscribers will be called twice on subscription
-            unsubscribers = [(lambda s=s: s.subscribe(self.__sync))(s) for s in self.sources]
+            def sync(x=None): # x is ignored
+                values = self.sources.map(lambda x: x.get())
+                set_fn(self.fn(*values))
+            sync() # sync target with source values, they can have changed since Derived creation
+            unsubscribers = self.sources.map(lambda s: s.subscribe(sync))
             def stop():
                 for unsubscribe in unsubscribers: unsubscribe()
             return stop
-        self.__sync(None)
-        self.target = Writable(self.fn(*self.values), start)
+        values = self.sources.map(lambda x: x.get())
+        self.target = Readable(self.fn(*values), start)
 
     def get(self): return self.target.get()
 
@@ -149,10 +149,6 @@ class Derived(Writable):
                   ) -> Unsubscriber:
         ''' Adds callback to the list of subscribers.'''
         return self.target.subscribe(callback)
-
-    def __sync(self:Derived, x): # ignore the new value and just refresh the target from sources
-        self.values = [(lambda s=s: s.get())(s) for s in self.sources] 
-        if self.__target_set_fn: self.__target_set_fn(self.fn(*self.values))
 
 # %% ../nbs/00_stores.ipynb 17
 import fastcore.all as fc
