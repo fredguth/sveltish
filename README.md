@@ -117,8 +117,8 @@ stop2 = count.subscribe(lambda x: print(f"double of count is {2*x}"))
 reset()
 ```
 
-    double of count is 0
     Count is now 0
+    double of count is 0
 
 ``` python
 stop()
@@ -273,7 +273,7 @@ now = Readable(time.localtime(), start)
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=3, tm_hour=9, tm_min=39, tm_sec=1, tm_wday=4, tm_yday=62, tm_isdst=0))
+    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=1, tm_min=15, tm_sec=16, tm_wday=6, tm_yday=64, tm_isdst=0))
 
 <div>
 
@@ -290,20 +290,20 @@ While there is no subscriber, the Readable will not be updated.
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=3, tm_hour=9, tm_min=39, tm_sec=1, tm_wday=4, tm_yday=62, tm_isdst=0))
+    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=1, tm_min=15, tm_sec=16, tm_wday=6, tm_yday=64, tm_isdst=0))
 
 ``` python
 OhPleaseStop = now.subscribe(lambda x: print(time.strftime(f"%H:%M:%S", x), end="\r"))
 ```
 
-    09:39:01
+    01:15:16
 
 ``` python
 time.sleep(2)
 OhPleaseStop()
 ```
 
-    09:39:03
+    01:15:18
 
 <div>
 
@@ -341,8 +341,8 @@ count.set(2)
 test_eq(double.get(), 4)
 ```
 
-    double is 4
     count is 2
+    double is 4
 
 ``` python
 stopCount(), stopDouble()
@@ -366,7 +366,7 @@ def calc_elapsed(now):
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=3, tm_hour=9, tm_min=39, tm_sec=3, tm_wday=4, tm_yday=62, tm_isdst=0))
+    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=1, tm_min=15, tm_sec=18, tm_wday=6, tm_yday=64, tm_isdst=0))
 
 ``` python
 elapsed = Derived(now, lambda x: calc_elapsed(x))
@@ -474,6 +474,46 @@ test_eq(zipper.get(), [(4, 8), (3, 7), (2, 6), (1, 5)])
 
 ``` python
 u()
+```
+
+#### Store composition with pipes
+
+``` python
+Writable(1).pipe(lambda x: x + 1).pipe(lambda x: x * 2)
+```
+
+    Derived(4)
+
+``` python
+Writable(1).pipe(lambda x: x+1, lambda x: x*2)
+```
+
+    Derived(4)
+
+``` python
+Writable(1) | (lambda x: x+1) | (lambda x: x*2)
+```
+
+    Derived(4)
+
+``` python
+a = Writable(1)
+u5 = (a 
+      | (lambda x: x*2) 
+      | (lambda x: x*2) 
+      | (lambda x: x*2)).subscribe(lambda x: print(f"u5: {x}"))
+```
+
+    u5: 8
+
+``` python
+a.set(2)
+```
+
+    u5: 16
+
+``` python
+u5()
 ```
 
 ## Missing features
