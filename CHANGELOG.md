@@ -1,6 +1,12 @@
 # Release notes
 
 <!-- do not remove -->
+
+## 1.2.4
+- add store factories
+- Refactors stores
+
+
 ## 1.2.1
 - add Pipe operator
 - add compose utility
