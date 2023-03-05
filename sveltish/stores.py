@@ -3,63 +3,49 @@
 # %% ../nbs/00_stores.ipynb 0
 from __future__ import annotations
 from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, Any, overload
-from typing_extensions import Annotated
-from fastcore.test import test_eq, test, test_fail
-from fastcore.basics import patch
+from typing_extensions import Annotated, TypeAlias
+from fastcore.test import test_eq, test_fail
 
 # %% auto 0
-__all__ = ['T', 'covT', 'Subscriber', 'Unsubscriber', 'Updater', 'Notifier', 'StoreProtocol', 'Writable', 'Readable', 'Derived',
-           'pipe']
+__all__ = ['T', 'covT', 'Subscriber', 'Unsubscriber', 'Updater', 'Notifier', 'Readable', 'StoreProtocol', 'Writable', 'Store',
+           'writable', 'ReadableStore', 'readable', 'DerivedStore', 'derived', 'pipe']
 
 # %% ../nbs/00_stores.ipynb 6
 T = TypeVar("T")
 covT = TypeVar("covT", covariant=True)
 Subscriber = Callable[[T], None] # a callback
-Unsubscriber = Callable[[], None] # a callback to be used upon termination of the subscription    
+Unsubscriber = Callable[[], None] # a callback to be used upon termination of the subscription
 Updater = Callable[[T], T]
 Notifier = Callable[[Subscriber], Union[Unsubscriber, None]]
 
-# %% ../nbs/00_stores.ipynb 7
 class StoreProtocol(Protocol, Generic[covT]):
     ''' The Svelte Store ~~contract~~ protocol. '''
     def subscribe(self, subscriber: Subscriber[T]) -> Unsubscriber: ...
 
-# %% ../nbs/00_stores.ipynb 8
-class Store(StoreProtocol[T]):
-    ''' A base class for all stores.'''
-    value: T
-    subscribers: Set[Subscriber]
-    def __init__(self, /, **kwargs): 
-        self.__dict__.update(kwargs) # see SimpleNamespace: https://docs.python.org/3/library/types.html
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.get()!r})"
-    def subscribe(self, callback: Subscriber) -> Unsubscriber:
-        return lambda: None
-    def get(self) -> T: return self.value
+Readable: TypeAlias = StoreProtocol[T]
 
+class Writable(Readable[T]):
+    ''' Writable protocol'''
+    def set(self, value: T) -> None: ...
+    def update(self, updater: Updater[T]) -> None: ...
 
 # %% ../nbs/00_stores.ipynb 9
-class Readable(Store[T]): pass
-
-class Writable(Store[T]):
-    set: Subscriber
-    update: Optional[Callable[[Updater],None]] = None
+import sveltish.utils as utils
 
 # %% ../nbs/00_stores.ipynb 10
-from .utils import safe_not_equal
-
-# %% ../nbs/00_stores.ipynb 11
-class Writable(Store[T]):
+class Store(Readable[T]):
     ''' A Writable Store.'''
     def __init__(self:Writable,
                 initial_value: Any = None, # initial value of the store
-                start: Notifier = lambda x: None # A Notifier (Optional)
+                start: Notifier = utils.noop # A Notifier (Optional)
                 ) -> None:
         self.value = initial_value
         self.subscribers: Set[Subscriber] = set() # callbacks to be called when the value changes
         self.start: Notifier = start # function called when the first subscriber is added
         self.stop: Optional[Unsubscriber] = None  # functional called when the last subscriber is removed
-        
+
+    def get(self) -> T: return self.value
+
     def subscribe(self:Writable,
                   callback: Subscriber # callback to be called when the store value changes
                   ) -> Unsubscriber:
@@ -68,7 +54,6 @@ class Writable(Store[T]):
         if (len(self.subscribers) == 1):
             self.stop = self.start(self.__set) or (lambda: None) #type: ignore
         callback(self.value)
-
         def unsubscribe() -> None:
             ''' Removes callback from the list of subscribers.'''
             self.subscribers.remove(callback) if callback in self.subscribers else None
@@ -76,35 +61,47 @@ class Writable(Store[T]):
                 self.stop() if self.stop else None #type: ignore
                 self.stop = None #type: ignore
         return unsubscribe
-        
-    def __set(self, 
+
+    def __set(self,
             new_value: T # The new value of the store
             ) -> None:
         ''' Internal implementation of set used inside Readable Store, which does not exposes set.'''
-        if (safe_not_equal(self.value, new_value)):
+        if (utils.safe_not_equal(self.value, new_value)):
             self.value = new_value
             for subscriber in self.subscribers:
                 subscriber(new_value)
-    def set(self, 
+
+    def set(self,
             new_value: T # The new value of the store
             ) -> None:
         ''' Set value of store.'''
         self.__set(new_value)
-    
-    def update(self, 
+
+    def update(self,
                fn: Callable[[T], T] # a callback that takes the existing store value and updates it
                ) -> None:
         ''' Update the store value by applying `fn` to the existing value.'''
         self.set(fn(self.value))
-    
+
     def __len__(self) -> int:
         ''' The length of the store is the number of subscribers.'''
         return len(self.subscribers)
 
-# %% ../nbs/00_stores.ipynb 13
-class Readable(Writable[T]):
-    ''' A Readable Store.''' 
-    def __init__(self, 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.get()!r})"
+
+
+# %% ../nbs/00_stores.ipynb 12
+def writable(value: T = None, # initial value of the store
+             start: Notifier = utils.noop # Optional Notifier, a function called when the first subscriber is added
+             ) -> Writable[T]: # Writable Store
+    ''' Creates a new Writable Store (A Writable factory).'''
+    return Store(value, start)
+
+# %% ../nbs/00_stores.ipynb 15
+class ReadableStore(Store[T]):
+    ''' A Readable Store.'''
+    def __init__(self,
                  initial_value: T, # initial value of the store
                  start: Notifier # function called when the first subscriber is added
                 ) -> None:
@@ -112,13 +109,21 @@ class Readable(Writable[T]):
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Readable Store.")
 
-# %% ../nbs/00_stores.ipynb 14
-from .utils import compose
+# %% ../nbs/00_stores.ipynb 17
+def readable(value: T, # initial value of the store
+             start: Notifier  # function called when the first subscriber is added
+             ) -> Readable[T]:  # Readable Store
+    ''' Creates a new Readable Store (A Readable factory).'''
+    return ReadableStore(value, start)
 
-# %% ../nbs/00_stores.ipynb 15
-class Derived(Writable):
+# %% ../nbs/00_stores.ipynb 21
+from .utils import compose
+from fastcore.foundation import L
+
+# %% ../nbs/00_stores.ipynb 22
+class DerivedStore(Store[T]):
     ''' A Derived Store.'''
-    def __init__(self:Derived,
+    def __init__(self,
                  s: Union[Store, list[Store]], # source store(s)
                  *functions: Callable, # a callback that takes the source store(s) values and returns the derived value
              ) -> None:
@@ -126,7 +131,7 @@ class Derived(Writable):
         if not all(isinstance(x, Store) for x in self.sources):
             raise Exception("s must be a Store or a list of Stores")
         self.fn = compose(*functions)
-        
+
         def start(set_fn: Subscriber):
             def sync(x=None): # x is ignored
                 values = self.sources.map(lambda x: x.get())
@@ -137,30 +142,39 @@ class Derived(Writable):
                 for unsubscribe in unsubscribers: unsubscribe()
             return stop
         values = self.sources.map(lambda x: x.get())
-        self.target = Readable(self.fn(*values), start)
+        self.target = readable(self.fn(*values), start)
 
     def get(self): return self.target.get()
-
     def set(self, *args, **kwargs): raise Exception("Cannot set a Derived Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Derived Store.")
-
     def subscribe(self,
                   callback: Subscriber # callback to be called when any of the source stores change
                   ) -> Unsubscriber:
         ''' Adds callback to the list of subscribers.'''
         return self.target.subscribe(callback)
 
-# %% ../nbs/00_stores.ipynb 17
+# %% ../nbs/00_stores.ipynb 24
+def derived(s: Union[Store, list[Store]], # source store(s)
+            *functions: list(Callable[...,T]) # a callback that takes the source store(s) values and returns the derived value
+            ) -> Readable: # Derived Store
+    ''' Creates a new Derived Store (A Derived factory).'''
+    return DerivedStore(s, *functions).target
+
+# %% ../nbs/00_stores.ipynb 27
 import fastcore.all as fc
 
-# %% ../nbs/00_stores.ipynb 18
+# %% ../nbs/00_stores.ipynb 28
 @fc.patch
-def pipe(self:Store, *functions):
-    ''' Piping operator. '''
-    return Derived(self, *functions)
+def pipe(self:Store, # source store
+         *functions: list(Callable[...,T]) # functions that transform the source store
+         )->Readable[T]: # returned store
+     ''' Unix-like Pipe operator.'''
+     return derived(self, *functions)
 
-# %% ../nbs/00_stores.ipynb 20
+# %% ../nbs/00_stores.ipynb 30
 @fc.patch
-def __or__(self:Store, other: Callable):
+def __or__(self:Store, # source store
+           other: Callable[...,T] # function that transforms the source store
+           ) -> Readable[T]: # returned store
     ''' self | other  works like Unix pipes. It returns a Derived Store that is the result of applying other to self.'''
-    return self.pipe(other) 
+    return self.pipe(other)

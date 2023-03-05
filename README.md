@@ -33,11 +33,11 @@ interested parties to be notified when its value changes.
 #### **Writable Stores**
 
 ``` python
-from sveltish.stores import Writable
+from sveltish.stores import writable
 ```
 
 ``` python
-count = Writable(0)
+count = writable(0)
 history = []  # logging for testing
 # subscribe returns an unsubscriber
 def record(x): 
@@ -89,7 +89,7 @@ test_eq(history, [0, 3, 4, 3, 2, 0, 42])
 count
 ```
 
-    Writable(22)
+    Store(22)
 
 Notice that you can still change the `store` but there was no print
 message this time. There was no observer listening.
@@ -128,7 +128,7 @@ stop2()
 You can create an empty `Writable Store`.
 
 ``` python
-store = Writable()
+store = writable()
 history = []
 unsubscribe = store.subscribe(lambda x: history.append(x))
 unsubscribe()
@@ -161,7 +161,7 @@ class Bunch:
 
 obj = Bunch()
 called = 0
-store = Writable(obj)
+store = writable(obj)
 def callback(x):
     global called
     called += 1
@@ -192,7 +192,7 @@ objects. For those cases, we have readable stores.
 </div>
 
 ``` python
-from sveltish.stores import Readable
+from sveltish.stores import readable
 ```
 
 A Readable store without a `start` function is a constant value and has
@@ -200,14 +200,14 @@ no meaning for us. Therefore, `start` is a required argument.
 
 ``` python
 try:
-    c = Readable(0) # shoud fail
+    c = readable(0) # shoud fail
 except Exception as error:
     print(error)
 
-test_fail(lambda: Readable(0))
+test_fail(lambda: readable(0))
 ```
 
-    __init__() missing 1 required positional argument: 'start'
+    readable() missing 1 required positional argument: 'start'
 
 ``` python
 class Publisher:
@@ -220,11 +220,11 @@ class Publisher:
 
 ``` python
 p = Publisher()
-reader = Readable(0, p.set_set)
+reader = readable(0, p.set_set)
 reader
 ```
 
-    Readable(0)
+    ReadableStore(0)
 
 Ths store only starts updating after the first subscriber. Here, the
 publisher does not change the store.
@@ -233,7 +233,7 @@ publisher does not change the store.
 p.use_set(1), reader
 ```
 
-    (None, Readable(0))
+    (None, ReadableStore(0))
 
 ``` python
 stop = reader.subscribe(lambda x: print(f"reader is now {x}"))
@@ -269,11 +269,11 @@ def start(set): # the start function is the publisher
 ```
 
 ``` python
-now = Readable(time.localtime(), start)
+now = readable(time.localtime(), start)
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=1, tm_min=15, tm_sec=16, tm_wday=6, tm_yday=64, tm_isdst=0))
+    ReadableStore(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=12, tm_min=7, tm_sec=50, tm_wday=6, tm_yday=64, tm_isdst=0))
 
 <div>
 
@@ -290,20 +290,20 @@ While there is no subscriber, the Readable will not be updated.
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=1, tm_min=15, tm_sec=16, tm_wday=6, tm_yday=64, tm_isdst=0))
+    ReadableStore(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=12, tm_min=7, tm_sec=50, tm_wday=6, tm_yday=64, tm_isdst=0))
 
 ``` python
 OhPleaseStop = now.subscribe(lambda x: print(time.strftime(f"%H:%M:%S", x), end="\r"))
 ```
 
-    01:15:16
+    12:07:50
 
 ``` python
 time.sleep(2)
 OhPleaseStop()
 ```
 
-    01:15:18
+    12:07:52
 
 <div>
 
@@ -320,15 +320,15 @@ OhPleaseStop()
 A `Derived Store` stores a value based on the value of another store.
 
 ``` python
-from sveltish.stores import Derived
+from sveltish.stores import derived
 ```
 
 For example:
 
 ``` python
-count = Writable(1)
+count = writable(1)
 stopCount = count.subscribe(lambda x: print(f"count is {x}"))
-double = Derived(count, lambda x: x * 2)
+double = derived(count, lambda x: x * 2)
 stopDouble = double.subscribe(lambda x: print(f"double is {x}"))
 test_eq(double.get(), 2*count.get())
 ```
@@ -341,8 +341,8 @@ count.set(2)
 test_eq(double.get(), 4)
 ```
 
-    count is 2
     double is 4
+    count is 2
 
 ``` python
 stopCount(), stopDouble()
@@ -366,14 +366,14 @@ def calc_elapsed(now):
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=1, tm_min=15, tm_sec=18, tm_wday=6, tm_yday=64, tm_isdst=0))
+    ReadableStore(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=5, tm_hour=12, tm_min=7, tm_sec=52, tm_wday=6, tm_yday=64, tm_isdst=0))
 
 ``` python
-elapsed = Derived(now, lambda x: calc_elapsed(x))
+elapsed = derived(now, lambda x: calc_elapsed(x))
 elapsed
 ```
 
-    Derived(0.0)
+    ReadableStore(0.0)
 
 ``` python
 stopElapsed = elapsed.subscribe(lambda x: print(f"Elapsed time of source store: {x} seconds.", end="\r"))
@@ -395,14 +395,14 @@ are called `operators`. You can build several operators like: `filter`,
 Let’s build a custom `filter` operator:
 
 ``` python
-user = Writable({"name": "John", "age": 32})
+user = writable({"name": "John", "age": 32})
 stopLog = user.subscribe(lambda x: print(f"User: {x}"))
 ```
 
     User: {'name': 'John', 'age': 32}
 
 ``` python
-name = Derived(user, lambda x: x["name"])
+name = derived(user, lambda x: x["name"])
 stopName = name.subscribe(lambda x: print(f"Name: {x}"))
 ```
 
@@ -421,8 +421,8 @@ happens when we update the name.
 user.update(lambda x: x | {"name": "Fred"})
 ```
 
-    Name: Fred
     User: {'name': 'Fred', 'age': 45}
+    Name: Fred
 
 Only changes to the name of the user triggers the `name` subscriber.
 
@@ -436,15 +436,15 @@ Another cool thing about Derived Stores is that you can derive from a
 list of stores. Let’s build a `zip` operator.
 
 ``` python
-a = Writable([1,2,3,4])
-b = Writable([5,6,7,8])
+a = writable([1,2,3,4])
+b = writable([5,6,7,8])
 a,b
 ```
 
-    (Writable([1, 2, 3, 4]), Writable([5, 6, 7, 8]))
+    (Store([1, 2, 3, 4]), Store([5, 6, 7, 8]))
 
 ``` python
-zipper = Derived([a,b], lambda a,b: list(zip(a,b)))
+zipper = derived([a,b], lambda a,b: list(zip(a,b)))
 ```
 
 ``` python
@@ -479,25 +479,25 @@ u()
 #### Store composition with pipes
 
 ``` python
-Writable(1).pipe(lambda x: x + 1).pipe(lambda x: x * 2)
+writable(1).pipe(lambda x: x + 1).pipe(lambda x: x * 2)
 ```
 
-    Derived(4)
+    ReadableStore(4)
 
 ``` python
-Writable(1).pipe(lambda x: x+1, lambda x: x*2)
+writable(1).pipe(lambda x: x+1, lambda x: x*2)
 ```
 
-    Derived(4)
+    ReadableStore(4)
 
 ``` python
-Writable(1) | (lambda x: x+1) | (lambda x: x*2)
+writable(1) | (lambda x: x+1) | (lambda x: x*2)
 ```
 
-    Derived(4)
+    ReadableStore(4)
 
 ``` python
-a = Writable(1)
+a = writable(1)
 u5 = (a 
       | (lambda x: x*2) 
       | (lambda x: x*2) 
