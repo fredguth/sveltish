@@ -15,20 +15,18 @@ from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, 
 from typing_extensions import Annotated
 
 # %% ../nbs/10_utils.ipynb 6
-def compose(*functions):
-    """Compose multiple functions left to right.
-
-    Examples:
-        >>> compose()(x) == x
-        >>> compose(f)(x) == f(x)
-        >>> compose(f, g)(x) == g(f(x))
-        >>> compose(f, g, h)(x) == h(g(f(x)))
-        ...
-    Returns:
-        The composed function.
-    """
-    if (len(functions)==0): return lambda x: x
+def compose( 
+    *functions # functions to be composed (left to right)
+) -> Callable[[Any], Any]:  # composed function
+    """Compose multiple functions left to right.\n
+    Examples:\n
+        compose()(x) = x 
+        compose(f)(x) = f(x) 
+        compose(f, g)(x) = g(f(x)) 
+        ... 
+    """    
+    if (len(functions)==0): return lambda x: x # compose()(x) = x
     def pack(x): return x if type(x) is tuple else (x,)
     def call(f, g):
-       return lambda *x: g(*pack(f(*pack(x))))
-    return reduce(call, functions)
+       return lambda *x: g(*pack(f(*pack(x)))) # call in reverse order
+    return reduce(call, functions)  # composed function

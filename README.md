@@ -44,14 +44,13 @@ def record(x):
     history.append(x)
     print(history)
 stop = count.subscribe(record)
-count
+
+test_eq(history, [0])
 ```
 
     [0]
 
-    Writable(0)
-
-We just created a store, `count`. Its value can be accessed via a
+We just created a `count` store. Its value can be accessed via a
 `callback` we pass in the `count.subscribe` method:
 
 A **Writable** can be set from the outside. When it happens, all its
@@ -68,7 +67,6 @@ decrement()
 decrement()
 reset()
 count.set(42)
-
 
 test_eq(history, [0, 3, 4, 3, 2, 0, 42])
 ```
@@ -119,8 +117,8 @@ stop2 = count.subscribe(lambda x: print(f"double of count is {2*x}"))
 reset()
 ```
 
-    Count is now 0
     double of count is 0
+    Count is now 0
 
 ``` python
 stop()
@@ -275,7 +273,7 @@ now = Readable(time.localtime(), start)
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=24, tm_hour=16, tm_min=58, tm_sec=1, tm_wday=4, tm_yday=55, tm_isdst=0))
+    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=3, tm_hour=9, tm_min=39, tm_sec=1, tm_wday=4, tm_yday=62, tm_isdst=0))
 
 <div>
 
@@ -292,20 +290,20 @@ While there is no subscriber, the Readable will not be updated.
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=24, tm_hour=16, tm_min=58, tm_sec=1, tm_wday=4, tm_yday=55, tm_isdst=0))
+    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=3, tm_hour=9, tm_min=39, tm_sec=1, tm_wday=4, tm_yday=62, tm_isdst=0))
 
 ``` python
 OhPleaseStop = now.subscribe(lambda x: print(time.strftime(f"%H:%M:%S", x), end="\r"))
 ```
 
-    16:58:01
+    09:39:01
 
 ``` python
 time.sleep(2)
 OhPleaseStop()
 ```
 
-    16:58:03
+    09:39:03
 
 <div>
 
@@ -343,8 +341,8 @@ count.set(2)
 test_eq(double.get(), 4)
 ```
 
-    count is 2
     double is 4
+    count is 2
 
 ``` python
 stopCount(), stopDouble()
@@ -356,36 +354,39 @@ Building on our previous example, we can create a store that derives the
 elapsed time since the original store was started.
 
 ``` python
-def calc_elapsed(then):
-    now = time.localtime()
-    return time.mktime(now) - time.mktime(then)
+elapsing = None
+def calc_elapsed(now):
+    global elapsing
+    if not elapsing: 
+        elapsing = now
+    return time.mktime(now) - time.mktime(elapsing)
 ```
 
 ``` python
 now
 ```
 
-    Readable(time.struct_time(tm_year=2023, tm_mon=2, tm_mday=24, tm_hour=16, tm_min=58, tm_sec=3, tm_wday=4, tm_yday=55, tm_isdst=0))
+    Readable(time.struct_time(tm_year=2023, tm_mon=3, tm_mday=3, tm_hour=9, tm_min=39, tm_sec=3, tm_wday=4, tm_yday=62, tm_isdst=0))
 
 ``` python
-elapsed = Derived(now, lambda x: time.strftime(f"%H:%M:%S", x))
+elapsed = Derived(now, lambda x: calc_elapsed(x))
 elapsed
 ```
 
-    Derived('16:58:03')
+    Derived(0.0)
 
 ``` python
-stopElapsed = elapsed.subscribe(lambda x: print(f"Elapsed time: {x} seconds.", end="\r"))
+stopElapsed = elapsed.subscribe(lambda x: print(f"Elapsed time of source store: {x} seconds.", end="\r"))
 ```
 
-    Elapsed time: 16:58:03 seconds.
+    Elapsed time of source store: 0.0 seconds.
 
 ``` python
 time.sleep(1)
 stopElapsed()
 ```
 
-    Elapsed time: 16:58:05 seconds.
+    Elapsed time of source store: 2.0 seconds.
 
 Derived stores allow us to transform the value of a store. In RxPy they
 are called `operators`. You can build several operators like: `filter`,
@@ -420,8 +421,8 @@ happens when we update the name.
 user.update(lambda x: x | {"name": "Fred"})
 ```
 
-    User: {'name': 'Fred', 'age': 45}
     Name: Fred
+    User: {'name': 'Fred', 'age': 45}
 
 Only changes to the name of the user triggers the `name` subscriber.
 
