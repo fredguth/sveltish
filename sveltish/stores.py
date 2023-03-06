@@ -88,7 +88,10 @@ class Store(Readable[T]):
         return len(self.subscribers)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.get()!r})"
+        vStr = "\n" if len(str(self.value)) > 50 else "("
+        vStr += str(self.value)
+        vStr += "" if len(str(self.value)) > 50 else ")"
+        return f"{self.__class__.__name__} <{len(self)}>:{vStr}"
 
 
 # %% ../nbs/00_stores.ipynb 12
