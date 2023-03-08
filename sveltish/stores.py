@@ -45,6 +45,7 @@ class Store(Readable[T]):
         self.stop: Optional[Unsubscriber] = None  # functional called when the last subscriber is removed
 
     def get(self) -> T: return self.value
+    __call__ = get
 
     def subscribe(self:Writable,
                   callback: Subscriber # callback to be called when the store value changes
@@ -88,10 +89,7 @@ class Store(Readable[T]):
         return len(self.subscribers)
 
     def __repr__(self) -> str:
-        vStr = "\n" if len(str(self.value)) > 50 else "("
-        vStr += str(self.value)
-        vStr += "" if len(str(self.value)) > 50 else ")"
-        return f"{self.__class__.__name__} <{len(self)}>:{vStr}"
+        return f"w<{len(self)}> ${self.value.__class__.__name__}: {self.value}"
 
 
 # %% ../nbs/00_stores.ipynb 12
@@ -111,6 +109,7 @@ class ReadableStore(Store[T]):
         super().__init__(initial_value, start)
     def set(self, *args, **kwargs): raise Exception("Cannot set a Readable Store.")
     def update(self, *args, **kwargs): raise Exception("Cannot update a Readable Store.")
+    def __repr__(self) -> str: return "r" + super().__repr__()[1:]
 
 # %% ../nbs/00_stores.ipynb 17
 def readable(value: T, # initial value of the store
