@@ -2,6 +2,11 @@
 
 <!-- do not remove -->
 
+## 1.2.6
+- refactor store representation
+
+
+
 ## 1.2.4
 - add store factories
 - Refactors stores
