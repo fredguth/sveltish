@@ -2,8 +2,7 @@
 
 # %% ../nbs/00_stores.ipynb 0
 from __future__ import annotations
-from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, Any, overload
-from typing_extensions import Annotated, TypeAlias
+from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, Any
 from fastcore.test import test_eq, test_fail
 
 # %% auto 0
@@ -89,7 +88,7 @@ class Store(Readable[T]):
         return len(self.subscribers)
 
     def __repr__(self) -> str:
-        return f"w<{len(self)}> ${self.value.__class__.__name__}: {self.value}"
+        return f"w<{len(self)}> ${self.value.__class__.__name__}: {self.value.__repr__()}"
 
 
 # %% ../nbs/00_stores.ipynb 12

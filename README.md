@@ -89,7 +89,7 @@ test_eq(history, [0, 3, 4, 3, 2, 0, 42])
 count
 ```
 
-    w$int <0>:22
+    w<0> $int: 22
 
 Notice that you can still change the `store` but there was no print
 message this time. There was no observer listening.
@@ -224,7 +224,7 @@ reader = readable(0, p.set_set)
 reader
 ```
 
-    r$int <0>:0
+    r<0> $int: 0
 
 Ths store only starts updating after the first subscriber. Here, the
 publisher does not change the store.
@@ -233,7 +233,7 @@ publisher does not change the store.
 p.use_set(1), reader
 ```
 
-    (None, r$int <0>:0)
+    (None, r<0> $int: 0)
 
 ``` python
 stop = reader.subscribe(lambda x: print(f"reader is now {x}"))
@@ -273,7 +273,7 @@ now = readable(time.localtime(), start)
 now
 ```
 
-    r$struct_time <0>:time.struct_time(tm_year=2023, tm_mon=3, tm_mday=8, tm_hour=10, tm_min=1, tm_sec=59, tm_wday=2, tm_yday=67, tm_isdst=0)
+    r<0> $struct_time: time.struct_time(tm_year=2023, tm_mon=3, tm_mday=8, tm_hour=22, tm_min=12, tm_sec=41, tm_wday=2, tm_yday=67, tm_isdst=0)
 
 <div>
 
@@ -290,20 +290,20 @@ While there is no subscriber, the Readable will not be updated.
 now
 ```
 
-    r$struct_time <0>:time.struct_time(tm_year=2023, tm_mon=3, tm_mday=8, tm_hour=10, tm_min=1, tm_sec=59, tm_wday=2, tm_yday=67, tm_isdst=0)
+    r<0> $struct_time: time.struct_time(tm_year=2023, tm_mon=3, tm_mday=8, tm_hour=22, tm_min=12, tm_sec=41, tm_wday=2, tm_yday=67, tm_isdst=0)
 
 ``` python
 OhPleaseStop = now.subscribe(lambda x: print(time.strftime(f"%H:%M:%S", x), end="\r"))
 ```
 
-    10:01:59
+    22:12:41
 
 ``` python
 time.sleep(2)
 OhPleaseStop()
 ```
 
-    10:02:02
+    22:12:43
 
 <div>
 
@@ -341,8 +341,8 @@ count.set(2)
 test_eq(double.get(), 4)
 ```
 
-    double is 4
     count is 2
+    double is 4
 
 ``` python
 stopCount(), stopDouble()
@@ -366,14 +366,14 @@ def calc_elapsed(now):
 now
 ```
 
-    r$struct_time <0>:time.struct_time(tm_year=2023, tm_mon=3, tm_mday=8, tm_hour=10, tm_min=2, tm_sec=2, tm_wday=2, tm_yday=67, tm_isdst=0)
+    r<0> $struct_time: time.struct_time(tm_year=2023, tm_mon=3, tm_mday=8, tm_hour=22, tm_min=12, tm_sec=43, tm_wday=2, tm_yday=67, tm_isdst=0)
 
 ``` python
 elapsed = derived(now, lambda x: calc_elapsed(x))
 elapsed
 ```
 
-    r$float <0>:0.0
+    r<0> $float: 0.0
 
 ``` python
 stopElapsed = elapsed.subscribe(lambda x: print(f"Elapsed time of source store: {x} seconds.", end="\r"))
@@ -386,7 +386,7 @@ time.sleep(1)
 stopElapsed()
 ```
 
-    Elapsed time of source store: 1.0 seconds.
+    Elapsed time of source store: 2.0 seconds.
 
 Derived stores allow us to transform the value of a store. In RxPy they
 are called `operators`. You can build several operators like: `filter`,
@@ -421,8 +421,8 @@ happens when we update the name.
 user.update(lambda x: x | {"name": "Fred"})
 ```
 
-    User: {'name': 'Fred', 'age': 45}
     Name: Fred
+    User: {'name': 'Fred', 'age': 45}
 
 Only changes to the name of the user triggers the `name` subscriber.
 
@@ -441,7 +441,7 @@ b = writable([5,6,7,8])
 a,b
 ```
 
-    (w$list <0>:[1, 2, 3, 4], w$list <0>:[5, 6, 7, 8])
+    (w<0> $list: [1, 2, 3, 4], w<0> $list: [5, 6, 7, 8])
 
 ``` python
 zipper = derived([a,b], lambda a,b: list(zip(a,b)))
@@ -482,19 +482,19 @@ u()
 writable(1).pipe(lambda x: x + 1).pipe(lambda x: x * 2)
 ```
 
-    r$int <0>:4
+    r<0> $int: 4
 
 ``` python
 writable(1).pipe(lambda x: x+1, lambda x: x*2)
 ```
 
-    r$int <0>:4
+    r<0> $int: 4
 
 ``` python
 writable(1) | (lambda x: x+1) | (lambda x: x*2)
 ```
 
-    r$int <0>:4
+    r<0> $int: 4
 
 ``` python
 a = writable(1)
