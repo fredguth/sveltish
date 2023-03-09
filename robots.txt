@@ -1,0 +1,1 @@
+Sitemap: https://fredguth.github.io/sveltish/sitemap.xml
