@@ -95,18 +95,26 @@ class Store(Readable[T]):
         conditions = [
             isinstance(k, (int, str)),
             not isinstance(self, DerivedStore), #type: ignore
-            isinstance(self.value, dict),
             k[:2]!='__'
         ]
-        if all(conditions) and k in self.value:
-            return self.value[k] # look in Store value
-        else: raise AttributeError(k)
+        if all(conditions):
+            if isinstance(self.value, dict) and k in self.value:
+                return self.value[k] # look in Store value
+            if hasattr(self.value, k): 
+                return getattr(self.value, k) # look in Store value
+        raise AttributeError(k)
 
     def __setattr__(self, k:str,v) -> None:
         exceptions = ['value', 'subscribers', 'start', 'stop', 'sources', 'fn', 'target']
-        if k not in exceptions and (k in self.value):
-            # uses set instead of __set because this shouldn't work with readable store
-            self.set({**self.value, k:v})
+
+        if k not in exceptions:
+            new_value = self.value
+            if isinstance(self.value, dict) and k in self.value:
+                new_value = {**self.value, k:v}
+            if hasattr(self.value, k):
+                new_value = self.value.__class__(**{**self.value.__dict__, k:v})
+            # uses set instead of __set because this shouldn't work with readable store 
+            self.set(new_value)
         else: super().__setattr__(k,v)
 
 # %% ../nbs/00_stores.ipynb 12
