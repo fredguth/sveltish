@@ -2,7 +2,7 @@
 
 # %% ../nbs/00_stores.ipynb 0
 from __future__ import annotations
-from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, Any
+from typing import Callable, TypeVar,  Generic, Union, Optional, Set, Protocol, Any, Sequence
 from fastcore.test import test_eq, test_fail
 
 # %% auto 0
@@ -90,6 +90,24 @@ class Store(Readable[T]):
     def __repr__(self) -> str:
         return f"w<{len(self)}> ${self.value.__class__.__name__}: {self.value.__repr__()}"
 
+    def __getattr__(self, k):
+        '''Called if property not found in Store object.'''
+        conditions = [
+            isinstance(k, (int, str)),
+            not isinstance(self, DerivedStore), #type: ignore
+            isinstance(self.value, dict),
+            k[:2]!='__'
+        ]
+        if all(conditions) and k in self.value:
+            return self.value[k] # look in Store value
+        else: raise AttributeError(k)
+
+    def __setattr__(self, k:str,v) -> None:
+        exceptions = ['value', 'subscribers', 'start', 'stop', 'sources', 'fn', 'target']
+        if k not in exceptions and (k in self.value):
+            # uses set instead of __set because this shouldn't work with readable store
+            self.set({**self.value, k:v})
+        else: super().__setattr__(k,v)
 
 # %% ../nbs/00_stores.ipynb 12
 def writable(value: T = None, # initial value of the store
@@ -161,10 +179,10 @@ def derived(s: Union[Store, list[Store]], # source store(s)
     ''' Creates a new Derived Store (A Derived factory).'''
     return DerivedStore(s, *functions).target
 
-# %% ../nbs/00_stores.ipynb 27
+# %% ../nbs/00_stores.ipynb 28
 import fastcore.all as fc
 
-# %% ../nbs/00_stores.ipynb 28
+# %% ../nbs/00_stores.ipynb 29
 @fc.patch
 def pipe(self:Store, # source store
          *functions: list(Callable[...,T]) # functions that transform the source store
@@ -172,7 +190,7 @@ def pipe(self:Store, # source store
      ''' Unix-like Pipe operator.'''
      return derived(self, *functions)
 
-# %% ../nbs/00_stores.ipynb 30
+# %% ../nbs/00_stores.ipynb 31
 @fc.patch
 def __or__(self:Store, # source store
            other: Callable[...,T] # function that transforms the source store
