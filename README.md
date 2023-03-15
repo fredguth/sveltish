@@ -98,7 +98,10 @@ message this time. There was no observer listening.
 
 > **Note**
 >
-> `Observer`, `Subscriber` and `Callback` are used as synomyms here.
+> [`Observer`](https://fredguth.github.io/sveltish/signals.html#observer),
+> `Subscriber` and
+> [`Callback`](https://fredguth.github.io/sveltish/signals.html#callback)
+> are used as synomyms here.
 
 </div>
 
